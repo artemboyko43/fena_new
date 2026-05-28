@@ -1,0 +1,65 @@
+flowchart TD
+    subgraph Watcher[API Watcher]
+        A1[Check provider schema]
+        A2[Check changelog]
+        A3[Run sandbox compatibility test]
+        A4{Change detected?}
+    end
+
+    subgraph Agent[Agent Rebuild]
+        B1[Regenerate client]
+        B2[Update schemas]
+        B3[Update mappers]
+        B4[Update fixtures]
+        B5[Update tests]
+        B6[Generate report]
+    end
+
+    subgraph CI[CI Verification]
+        C1[Lint]
+        C2[Typecheck]
+        C3[Unit tests]
+        C4[Contract tests]
+        C5[Mocked API tests]
+        C6[Sandbox tests]
+        C7{All checks passed?}
+    end
+
+    subgraph Human[Human Control]
+        D1[Review PR]
+        D2{Approve?}
+    end
+
+    subgraph Release[Release Pipeline]
+        E1[Deploy staging]
+        E2[Smoke tests]
+        E3[Canary release]
+        E4[Runtime monitoring]
+        E5{Healthy?}
+        E6[Full production rollout]
+        E7[Rollback]
+    end
+
+    A1 --> A4
+    A2 --> A4
+    A3 --> A4
+
+    A4 -- No --> Z1[Stop]
+    A4 -- Yes --> B1
+
+    B1 --> B2 --> B3 --> B4 --> B5 --> B6 --> C1
+
+    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7
+
+    C7 -- No --> Z2[Open failed PR with logs]
+    C7 -- Yes --> D1
+
+    D1 --> D2
+
+    D2 -- No --> B3
+    D2 -- Yes --> E1
+
+    E1 --> E2 --> E3 --> E4 --> E5
+
+    E5 -- No --> E7
+    E5 -- Yes --> E6
